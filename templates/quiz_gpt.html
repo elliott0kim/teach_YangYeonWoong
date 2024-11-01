@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Small Business - Start Bootstrap Template</title>
+        <!-- Favicon-->
+        <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet" />
+    </head>
+    <script>
+    // 페이지 로드 시 최초 1회 실행될 함수
+    const conversationHistory = [];
+
+    function initialLoad() {
+        const chatBox = document.getElementById('chat-box');
+        const initialMessage = "첼시 축구선수의 이름을 인공지능이 맞춥니다. 힌트는 총 5번 줄 수 있어요!";
+        
+        // GPT 환영 메시지를 채팅창에 표시
+        chatBox.innerHTML += `<div class="message gpt"><strong>GPT:</strong> ${initialMessage}</div>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+        
+        conversationHistory.push({ role: "assistant", content: "너는 2000년도 부터 지금 현재 2024년도 까지 첼시 1군 축구선수의 이름을 GPT 너가 맞출거야. 힌트는 내가 낼거야. 나의 이후 메세지를 받으면서 유추를 하고, 정답을 외쳐." });
+        
+        // 게임 시작 메시지를 서버로 전송
+        fetch('/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ messages: conversationHistory })  // 대화 기록 전송
+        })
+        .then(response => response.json())
+        .then(data => {
+            // GPT의 응답을 채팅창에 추가
+            chatBox.innerHTML += `<div class="message gpt"><strong>GPT:</strong> 자 이제 시작하세요!</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+            conversationHistory.push({ role: "assistant", content: data.message });
+            console.log(data.message);
+        });
+    }
+
+    // 페이지 로드 시 실행
+    window.onload = function() {
+        initialLoad();
+    };
+
+    function sendMessage() {
+        const userInput = document.getElementById('user-input').value;
+        if (userInput === "") return;
+
+        // 사용자가 보낸 메시지를 채팅창에 추가
+        const chatBox = document.getElementById('chat-box');
+        chatBox.innerHTML += `<div class="message user"><strong>You:</strong> ${userInput}</div>`;
+        
+        // 대화 기록에 사용자 입력 추가
+        conversationHistory.push({ role: "user", content: userInput });
+        
+        document.getElementById('user-input').value = '';
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // 서버에 메시지 전송
+        fetch('/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ messages: conversationHistory })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // GPT의 응답을 채팅창에 추가
+            chatBox.innerHTML += `<div class="message gpt"><strong>GPT:</strong> ${data.message}</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+            
+            // 대화 기록에 GPT 응답 추가
+            conversationHistory.push({ role: "assistant", content: data.message });
+        });
+    }
+    </script>
+
+    <body>
+        <!-- Responsive navbar-->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+            <div class="container px-5">
+                <a class="navbar-brand" href="#!">연웅's Manchester United Fan Page</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                        <li class="nav-item"><a class="nav-link active" aria-current="page" href="/">Home</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Page Content -->
+        <div class="container-fluid d-flex align-items-center justify-content-center" style="height: 100vh;">
+            <div class="card w-100">
+                <div class="card-bodyflex d-flex justify-content-between align-items-start">
+                    <div class="chat-container">
+                        <div class="chat-box" id="chat-box"></div>
+                        <input type="text" id="user-input" placeholder="Type your message..." style="width: 80%;" />
+                        <button onclick="sendMessage()">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Footer-->
+        <footer class="py-5 bg-dark">
+            <div class="container px-4 px-lg-5">
+                <ul style="list-style-type: none; padding-left: 0; display: flex; justify-content: flex-start;">
+                    <li style="margin-right: 15px;">
+                        <a href="https://www.manutd.com/ko" class="text-white">맨유 공식 홈페이지(한국)</a>
+                    </li>
+                    <li style="margin-right: 15px;">
+                        <a href="https://www.manutd.com/" class="text-white">맨유 공식 홈페이지(글로벌)</a>
+                    </li>
+                    <li>
+                        <a href="https://www.instagram.com/manchesterunited/" class="text-white">맨유 공식 인스타그램</a>
+                    </li>
+                </ul>
+            </div>
+        </footer>
+        
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    </body>
+</html>
